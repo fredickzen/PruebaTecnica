@@ -10,11 +10,14 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using multisfapi.Models;
 
 namespace multisfapi
 {
     public class Startup
     {
+        public static string ConnectionStringDefaultConnection { get; private set; }
+
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -25,7 +28,10 @@ namespace multisfapi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            ConnectionStringDefaultConnection = Configuration["ConnectionStrings:DefaultConnection"];
+
             services.AddControllers();
+            services.AddDbContext<bdPersonasContext>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -46,6 +52,10 @@ namespace multisfapi
             {
                 endpoints.MapControllers();
             });
+
+            
+            
+
         }
     }
 }
