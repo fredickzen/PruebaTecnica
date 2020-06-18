@@ -1,0 +1,25 @@
+/* Provide sufficient contrast against white background */
+a {
+  color: #0366d6;
+}
+
+code {
+  color: #e01a76;
+}
+
+.btn-primary {
+  color: #fff;
+  background-color: #1b6ec2;
+  border-color: #1861ac;
+}
+
+.App-header code {
+  background-color: #1c2833;
+  border: #0b5345 1px solid;
+  padding: 3px;
+  font-size: 12px;
+}
+.rigth-button button,
+.rigth-button input[type="submit"] {
+  float: right;
+}
