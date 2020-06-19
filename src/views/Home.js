@@ -28,7 +28,7 @@ export default class Home extends Component {
                                 
                                 <Suspense fallback={this.loading()}>
                                     <Row>
-                                        <Col>
+                                        <Col className="p-0">
                                             <Card>
                                                 <CardHeader>
                                                     <h3>Personas</h3>
