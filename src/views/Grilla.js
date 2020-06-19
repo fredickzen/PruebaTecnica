@@ -1,13 +1,9 @@
 import React, { Component } from 'react';
 import { 
     //Alert,
-    Badge,
-    Card, 
-    CardBody, 
-    CardFooter, 
-    CardHeader, 
+   
     Col, 
-    Collapse,
+    
     FormFeedback,
     FormGroup,
     Label,
@@ -20,13 +16,11 @@ import {
     ModalFooter,
     ModalHeader,
     Input,
-    InputGroup,
-    InputGroupAddon,
    
 } from 'reactstrap';
 
 import ReactTooltip from 'react-tooltip';
-import SimpleBar from 'simplebar-react';
+
 import { confirmAlert } from 'react-confirm-alert'; // Import
 import 'react-confirm-alert/src/react-confirm-alert.css'; // Import css
 import CustomSelect from '../ui/CustomSelect';
@@ -63,24 +57,18 @@ import {isMobile} from 'react-device-detect';
 /**
  * Data Ranges
  */
-import 'react-dates/initialize';
-import { DateRangePicker } from 'react-dates';
+
 //  import 'react-dates/lib/css/_datepicker.css';
 
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.min.css';
 
 
-import ThemedStyleSheet from 'react-with-styles/lib/ThemedStyleSheet';
-import aphroditeInterface from 'react-with-styles-interface-aphrodite';
-import DefaultTheme from 'react-dates/lib/theme/DefaultTheme';
+
 
 import esLocale from 'moment/locale/es';
 import moment from 'moment-timezone';
 
-import { isIterable } from '../utiles';
-
-import { webConfig } from '../GlobalConfig';
 
 import { obtenerPersonas , obtenerRegiones, obtenerCiudades, obtenerComunas, createPersona, obtenerUnaPersonas, updatePersona, deletePersona} from '../actions/serviciosAction';
 
@@ -244,7 +232,7 @@ class Grilla extends Component {
 
         if(nextProps.listaPersonas !== this.state.listaPersonas){
 
-            console.log(nextProps.listaPersonas);
+            //console.log(nextProps.listaPersonas);
             if(nextProps.listaPersonas && nextProps.listaPersonas.result){
                 this.setState({
                     listaPersonas:nextProps.listaPersonas,
@@ -252,7 +240,7 @@ class Grilla extends Component {
                     totalRegister: nextProps.listaPersonas.result.rowCount
                 });
              }else{
-                this.setState({listaPersonas: [], totalRegister: 0});
+                this.setState({listaPersonas: nextProps.listaPersonas, totalRegister: 0});
              }
         }
 
@@ -446,9 +434,9 @@ class Grilla extends Component {
 
         if(e){
 
-            const region = this.state.listaRegiones.find(item => item.value ==  e.regionCodigo);
-            const ciudad = this.state.listaCiudades.find(item => item.value ==  e.ciudadCodigo);
-            const comuna = this.state.listaComunas.find(item => item.value ==  e.comunaCodigo);
+            const region = this.state.listaRegiones.find(item => item.value ===  e.regionCodigo);
+            const ciudad = this.state.listaCiudades.find(item => item.value ===  e.ciudadCodigo);
+            const comuna = this.state.listaComunas.find(item => item.value ===  e.comunaCodigo);
 
             initialValues =
             {

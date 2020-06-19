@@ -50,7 +50,7 @@ export const obtenerPersonas = ({PageIndex = 1, PageSize = 10}) => async dispatc
     });
 }
 
-export const obtenerRegiones = ({}) => async dispatch => {
+export const obtenerRegiones = () => async dispatch => {
     let data = null;
     stateSite.setLoading(true);
 
