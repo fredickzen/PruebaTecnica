@@ -413,6 +413,7 @@ class Grilla extends Component {
 
         console.log(e);
 
+        let titlePopup = "Crear Persona";
         let bEvaluarFechaNacimiento = false;
     
         let initialValues = {  
@@ -434,6 +435,7 @@ class Grilla extends Component {
 
         if(e){
 
+            titlePopup = "Editar Persona";
             const region = this.state.listaRegiones.find(item => item.value ===  e.regionCodigo);
             const ciudad = this.state.listaCiudades.find(item => item.value ===  e.ciudadCodigo);
             const comuna = this.state.listaComunas.find(item => item.value ===  e.comunaCodigo);
@@ -875,7 +877,7 @@ class Grilla extends Component {
        
         </React.Fragment>
 
-        this.setOpenModal(true, 'lg', 'Listo!', 'modal-info', "Crear Persona", true, content);
+        this.setOpenModal(true, 'lg', 'Listo!', 'modal-info', titlePopup, true, content);
     }
 
     eliminarPersona = (id) => {
