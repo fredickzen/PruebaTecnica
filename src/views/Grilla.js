@@ -27,14 +27,15 @@ import {
 
 import ReactTooltip from 'react-tooltip';
 import SimpleBar from 'simplebar-react';
-
+import { confirmAlert } from 'react-confirm-alert'; // Import
+import 'react-confirm-alert/src/react-confirm-alert.css'; // Import css
 import CustomSelect from '../ui/CustomSelect';
 
 import 'react-datepicker/dist/react-datepicker-cssmodules.css';
 import "react-datepicker/dist/react-datepicker.css";
 import DatePicker, { registerLocale } from "react-datepicker";
 import es from 'date-fns/locale/es';
-
+import { validate as validateRut, format as formatRut } from 'rut.js';
 import 'simplebar/dist/simplebar.css';
 import '../css/simpleBar.css';
 //import CustomJobOfferPreview from '../../components/UI/CustomJobOfferPreview';
@@ -81,7 +82,7 @@ import { isIterable } from '../utiles';
 
 import { webConfig } from '../GlobalConfig';
 
-import { obtenerPersonas , obtenerRegiones, obtenerCiudades, obtenerComunas} from '../actions/serviciosAction';
+import { obtenerPersonas , obtenerRegiones, obtenerCiudades, obtenerComunas, createPersona, obtenerUnaPersonas, updatePersona, deletePersona} from '../actions/serviciosAction';
 
 // Redux
 import { connect } from 'react-redux';
@@ -155,12 +156,15 @@ class Grilla extends Component {
                             <ButtonGroup size="sm">
                                 <Button disabled={row.estado === 'revision'} data-for={"btnEdit_" + row.id} data-tip={"Editar persona cód: " +  row.id}  color="primary" onClick={(e) => { 
                                     
+                                    this.props.obtenerUnaPersonas({ id: row.id });
                                 } } >
                                     <i className="fa fa-edit"></i>
                                 </Button>
 
                                 <Button data-for={"btnDelete_" + row.id} data-tip={"Eliminar persona cód: " +  row.id} color="danger" onClick={(e) => { 
-                                    
+                                     this.confirmWindow({title : 'Confirmar Eliminar', message : `Seguro que desea eliminar persona(${ row.nombre + ' | Id: ' + row.id}) ?`, 
+                                     onClickYes : () => { this.eliminarPersona(row.id); }, 
+                                     onClickNo : null })
                                 } } >
                                     <i className="fa fa-eraser"></i>
                                    
@@ -183,10 +187,15 @@ class Grilla extends Component {
         moment.updateLocale("es", esLocale);
         
         this.state = {
+            listaPersonasGrid: [],
             listaPersonas: [],
             listaRegiones: [],
             listaCiudades: [],
             listaComunas: [],
+            unaPersona: null,
+            bCreatePersona: null,
+            actualizarUnaPersona: null,
+            eliminarUnaPersona: null,
             /* Grid */
             pageNumber: 1,
             pageSize: 10,
@@ -216,7 +225,9 @@ class Grilla extends Component {
         this.toggleModal = this.toggleModal.bind(this);
         this.onChangeRegiones = this.onChangeRegiones.bind(this);
         this.onChangeCiudades = this.onChangeCiudades.bind(this);
-
+        this.onChangeComunas = this.onChangeComunas.bind(this);
+        this.confirmWindow = this.confirmWindow.bind(this);
+        this.eliminarPersona = this.eliminarPersona.bind(this);
     }
 
     componentDidMount() {
@@ -225,16 +236,19 @@ class Grilla extends Component {
 
         this.props.obtenerRegiones({});
 
+        this.props.obtenerCiudades({regionCodigo : null});
+        this.props.obtenerComunas({ciudadCodigo : null});
     }
 
     UNSAFE_componentWillReceiveProps(nextProps, nextState){
 
         if(nextProps.listaPersonas !== this.state.listaPersonas){
 
-            //console.log(nextProps.listaPersonas);
+            console.log(nextProps.listaPersonas);
             if(nextProps.listaPersonas && nextProps.listaPersonas.result){
                 this.setState({
-                    listaPersonas: nextProps.listaPersonas.result.results,
+                    listaPersonas:nextProps.listaPersonas,
+                    listaPersonasGrid: nextProps.listaPersonas.result.results,
                     totalRegister: nextProps.listaPersonas.result.rowCount
                 });
              }else{
@@ -278,7 +292,7 @@ class Grilla extends Component {
              }
         }
 
-        if(nextProps.listaCiudades !== this.state.listaCiudades){
+        if(nextProps.listaComunas !== this.state.listaComunas){
 
             //console.log(nextProps.listaCiudades);
 
@@ -295,31 +309,85 @@ class Grilla extends Component {
                 this.setState({listaComunas: []});
              }
         }
-        
 
+        if(nextProps.bCreatePersona !== this.state.bCreatePersona){
+
+            //console.log(nextProps.bCreatePersona);
+
+            if(nextProps.bCreatePersona && !nextProps.bCreatePersona.error){
+                this.notify("Persona creada con exito...", true);
+                this.setState({
+                    bCreatePersona: nextProps.bCreatePersona ,
+                });
+                this.props.obtenerPersonas({PageIndex: this.state.pageNumber, PageSize: this.state.pageSize});
+             }else if(nextProps.bCreatePersona && nextProps.bCreatePersona.error){
+                this.notify("No ha sido posible crear la persona...", true);
+                this.setState({bCreatePersona: nextProps.bCreatePersona});
+             }
+        }
+        
+        if(nextProps.unaPersona !== this.state.unaPersona){
+
+            //console.log(nextProps.unaPersona);
+
+            if(nextProps.unaPersona && nextProps.unaPersona.result){
+
+                this.onClick_CreatePersona(nextProps.unaPersona.result);
+
+                this.setState({
+                    unaPersona: nextProps.unaPersona,
+                });
+
+             }
+        }
+
+        if(nextProps.actualizarUnaPersona !== this.state.actualizarUnaPersona){
+
+            //console.log(nextProps.actualizarUnaPersona);
+
+            if(nextProps.actualizarUnaPersona && !nextProps.actualizarUnaPersona.error){
+                this.notify("Persona actualizada con exito...", true);
+                this.setState({
+                    actualizarUnaPersona: nextProps.actualizarUnaPersona ,
+                });
+                this.props.obtenerPersonas({PageIndex: this.state.pageNumber, PageSize: this.state.pageSize});
+             }else if(nextProps.actualizarUnaPersona && nextProps.actualizarUnaPersona.error){
+                this.notify("No ha sido posible actualizar la persona...", true);
+                this.setState({actualizarUnaPersona: null});
+                this.setState({
+                    actualizarUnaPersona: nextProps.actualizarUnaPersona ,
+                });
+             }
+        }
+        
+        if(nextProps.eliminarUnaPersona !== this.state.eliminarUnaPersona){
+
+            //console.log(nextProps.actualizarUnaPersona);
+
+            if(nextProps.eliminarUnaPersona && !nextProps.eliminarUnaPersona.error){
+                this.notify("Persona eliminada con exito...", true);
+                this.setState({
+                    eliminarUnaPersona: nextProps.eliminarUnaPersona ,
+                });
+                this.props.obtenerPersonas({PageIndex: this.state.pageNumber, PageSize: this.state.pageSize});
+             }else if(nextProps.eliminarUnaPersona && nextProps.eliminarUnaPersona.error){
+                this.notify("No ha sido posible eliminar a la persona...", true);
+                this.setState({actualizarUnaPersona: null});
+                this.setState({
+                    eliminarUnaPersona: nextProps.eliminarUnaPersona ,
+                });
+             }
+        }
     }
 
-    // componentDidUpdate(prevProps, prevState) {
-
-    //     if (prevState.listaPersonas !== this.state.listaPersonas) {
-          
-    //         console.log(this.state.listaPersonas);
-    //     }
-    // }
-
     handlePageChange(pageNumber, pageSize) {
-       
+       console.log();
         this.setState({
             pageNumber: pageNumber,
             pageSize: pageSize
         });
 
-        /*this.props.getJobsOffers({ id: null, pageSize: pageSize, pageIndex: pageNumber - 1,
-            keySearch: this.state.searchText, 
-            stateOffer: this.state.selectedSearchEstado ? this.state.selectedSearchEstado.value : null,
-            startDate: this.state.searchStartDate, 
-            endDate: this.state.searchEndDate, 
-            bShowDisableRegisters: this.state.bShowDisable, sortField: this.state.sortFieldGridJobsOffers, sortOrder: this.state.sortOrderGridJobsOffers, code: this.state.searchCode });*/
+        this.props.obtenerPersonas({PageIndex : pageNumber, PageSize : pageSize});
     }
 
     handleSizePageChange(pageNumber, pageSize){
@@ -328,36 +396,15 @@ class Grilla extends Component {
             pageSize:pageSize
         });
 
-        /*this.props.getJobsOffers({ id: null, pageSize: pageSize, pageIndex: pageNumber - 1, 
-            keySearch: this.state.searchText, 
-            stateOffer: this.state.selectedSearchEstado ? this.state.selectedSearchEstado.value : null,
-            startDate: this.state.searchStartDate, 
-            endDate: this.state.searchEndDate, 
-            bShowDisableRegisters: this.state.bShowDisable, sortField: this.state.sortFieldGridJobsOffers, sortOrder: this.state.sortOrderGridJobsOffers,code: this.state.searchCode  });*/
+        this.props.obtenerPersonas({PageIndex : pageNumber, PageSize : pageSize});
     }
 
     handleTableChange = (type, { sortField, sortOrder, data }) => {
         
-        if(type === 'sort'){
-            this.props.getJobsOffers({ id: null, pageSize:  this.state.pageSize, pageIndex: this.state.pageNumber - 1,
-                keySearch: this.state.searchText, 
-                stateOffer: this.state.selectedSearchEstado ? this.state.selectedSearchEstado.value : null,
-                startDate: this.state.searchStartDate, 
-                endDate: this.state.searchEndDate, 
-                bShowDisableRegisters: this.state.bShowDisable,  sortField: sortField, sortOrder: sortOrder, code: this.state.searchCode  });
-        }
-        
-
-        this.setState(() => (
-            {
-                sortFieldGridJobsOffers: sortField, 
-                sortOrderGridJobsOffers: sortOrder
-            }
-        ));
     }
 
     onChangeRegiones = (e) => {
-       
+
         if(e){
             this.props.obtenerCiudades({regionCodigo : e.value});
         }
@@ -370,32 +417,74 @@ class Grilla extends Component {
         }
     }
 
+    onChangeComunas(e){
+        console.log(e);
+    }
+
     onClick_CreatePersona = (e) => {
+
+        console.log(e);
+
         let bEvaluarFechaNacimiento = false;
+    
+        let initialValues = {  
+            id: null,
+            run: '', 
+            nombres: '',
+            apellidoPaterno: '',
+            apellidoMaterno: '',
+            sexo: '',
+            direccion: '',
+            telefono: '',
+            observaciones: '',
+            region: null,
+            ciudad: null,
+            comuna: null,
+            email: '',
+            fechaNacimiento: new Date()
+        };
+
+        if(e){
+
+            const region = this.state.listaRegiones.find(item => item.value ==  e.regionCodigo);
+            const ciudad = this.state.listaCiudades.find(item => item.value ==  e.ciudadCodigo);
+            const comuna = this.state.listaComunas.find(item => item.value ==  e.comunaCodigo);
+
+            initialValues =
+            {
+                id: e.id,
+                run: e.runCuerpo ? e.runCuerpo + '-' + e.runDigito : 0, 
+                nombres: e.nombres ? e.nombres: '',
+                apellidoPaterno: e.apellidoPaterno ? e.apellidoPaterno : '',
+                apellidoMaterno: e.apellidoMaterno ? e.apellidoMaterno : '',
+                sexo: e.sexoCodigo ? e.sexoCodigo : 100,
+                direccion: e.direccion ? e.direccion : '',
+                telefono: e.telefono ? e.telefono : 0,
+                observaciones: e.observaciones ? e.observaciones : '',
+                region: e.regionCodigo ? { value: e.regionCodigo ? e.regionCodigo : 0, label: region ? region.label: 's/d'} : null,
+                ciudad: e.ciudadCodigo ? { value: e.ciudadCodigo ? e.ciudadCodigo : 0, label: ciudad ? ciudad.label : 's/d'} : null,
+                comuna: e.comunaCodigo ? { value: e.comunaCodigo ? e.comunaCodigo : 0, label: comuna ? comuna.label: 's/d'} : null,
+                email: e.email ? e.email : '',
+                fechaNacimiento: e.fechaNacimiento ? new Date(e.fechaNacimiento) : new Date(),
+            };
+        }
+
         const content =
         <React.Fragment>
             
             <Formik
                 // enableReinitialize={true}
-                initialValues={{  
-                    run: '', 
-                    nombres: '',
-                    apellidoPaterno: '',
-                    apellidoMaterno: '',
-                    sexo: '',
-                    direccion: '',
-                    telefono: '',
-                    observaciones: '',
-                    region: null,
-                    ciudad: null,
-                    comuna: null,
-                }}
+                initialValues={initialValues}
                 validate={ (values) => {
 
                     let errors = {};
                     
                     if (!values.run) {
-                        errors.run = 'Campo R.U.N es requerido.';
+                        errors.run = 'Campo R.U.N es requerido .';
+                    }else if(!validateRut(values.run)){
+                        errors.run = 'Debe ser un R.U.N valido.';
+                    }else{
+                        values.run = formatRut(values.run);
                     }
 
                     if (!values.nombres) {
@@ -416,6 +505,16 @@ class Grilla extends Component {
                         errors.apellidoMaterno = 'Campo Apellido Materno debe ser de largo máximo 100 carácteres.';
                     }
 
+                    if (!values.email) {
+                        errors.email = 'Campo Email es requerido.';
+                    }else if(values.email.length > 100){
+                        errors.email = 'Campo Email debe ser de largo máximo 100 carácteres.';
+                    }else if (
+                        !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(values.email)
+                    ) {
+                        errors.email = 'Debe proporcial un email valido.';
+                    }
+
                     if(!values.fechaNacimiento){
                         errors.fechaNacimiento = 'Campo Fecha de Nacimiento es requerido.';
                     }
@@ -432,8 +531,12 @@ class Grilla extends Component {
 
                     if (!values.telefono) {
                         errors.telefono = 'Campo Teléfono es requerido.';
-                    }else if(values.telefono.length > 100){
-                        errors.telefono = 'Campo Teléfono debe ser de largo máximo 100 carácteres.';
+                    }else if(parseInt(values.telefono) > 999999999){
+                        errors.telefono = 'Campo Teléfono debe ser de un número menor a 999999999.';
+                    }
+
+                    if (isNaN( values.telefono)) {
+                        errors.telefono = 'Campo Teléfono debe ser numérico.';
                     }
                     
                     if (!values.observaciones) {
@@ -466,10 +569,65 @@ class Grilla extends Component {
 					
                     this.setSubmitting = setSubmitting;
                     this.setSubmitting(false);
+                    console.log(values);
+                    if(values.id === null){
+                        this.notify("Creando Persona...", true);
+                       
+                        let rut = values.run;
+                        rut = rut.replace('.','').replace('.','').replace('-','');
+                        rut = rut.substring(0, String(rut).length - 1);
+                        console.log(rut);
+                        
+                        this.props.createPersona({
+                            Id : null,
+                            Run : '',
+                            RunCuerpo : parseInt(rut),
+                            RunDigito : String(values.run).substring(String(values.run).length - 1, String(values.run).length),
+                            Nombre : values.nombres,
+                            Nombres : values.nombres,
+                            ApellidoPaterno : values.apellidoPaterno,
+                            ApellidoMaterno : values.apellidoMaterno,
+                            Email : values.email,
+                            SexoCodigo : parseInt(values.sexo),
+                            FechaNacimiento : new Date(values.fechaNacimiento).toISOString(),
+                            RegionCodigo : values.region.value,
+                            CiudadCodigo : values.ciudad.value,
+                            ComunaCodigo : values.comuna.value,
+                            Direccion : values.direccion,
+                            Telefono : parseInt(values.telefono) ,
+                            Observaciones : values.observaciones
+                        });
+                    }else{
+                        this.notify("Actualizando Persona...", true);
+                       
+                        let rut = values.run;
+                        rut = rut.replace('.','').replace('.','').replace('-','');
+                        rut = rut.substring(0, String(rut).length - 1);
+                        console.log(rut);
+                        this.props.updatePersona({
+                            Id : values.id,
+                            Run : '',
+                            RunCuerpo : parseInt(rut) ,
+                            RunDigito : String(values.run).substring(String(values.run).length - 1, String(values.run).length),
+                            Nombre : values.nombres,
+                            Nombres : values.nombres,
+                            ApellidoPaterno : values.apellidoPaterno,
+                            ApellidoMaterno : values.apellidoMaterno,
+                            Email : values.email,
+                            SexoCodigo : parseInt(values.sexo),
+                            FechaNacimiento : new Date(values.fechaNacimiento).toISOString(),
+                            RegionCodigo : values.region.value,
+                            CiudadCodigo : values.ciudad.value,
+                            ComunaCodigo : values.comuna.value,
+                            Direccion : values.direccion,
+                            Telefono : parseInt(values.telefono) ,
+                            Observaciones : values.observaciones
+                        });
+                    }
 
-                    this.notify("Creando registro de Persona...", false);
-
-                    //this.props.createJobOffer({puesto: values.puesto});
+                    this.setState({
+                        modal: false,
+                    });
                 }}
                 >
                 {({
@@ -549,13 +707,37 @@ class Grilla extends Component {
                                         <p className={ values.apellidoMaterno.length > 100 ? "text-danger small" :"small"}>{values.apellidoMaterno.length + " / 100" }</p>
 									</FormGroup>
 
+                                    <FormGroup>
+										<Label htmlFor="email">Email<i className="text-danger">★</i></Label>
+										<Input type="text" id="email" 
+											name="email"
+											onChange={handleChange}
+											onBlur={handleBlur}
+											value={values.email || ''}
+											placeholder='Email...'
+											valid={values.email !== '' && touched.email}
+											invalid={errors.email !== undefined  && touched.email} ></Input>
+										<FormFeedback className="help-block">{errors.email && touched.email && errors.email}</FormFeedback>
+                                        <p className={ values.email.length > 100 ? "text-danger small" :"small"}>{values.email.length + " / 100" }</p>
+									</FormGroup>
+
+
                                     <FormGroup check inline>
-                                        <Input className="form-check-input" type="radio" id="inline-radio1" name="sexo" value={100} onChange={handleChange}
+                                        <Input className="form-check-input" type="radio" id="inline-radio1" name="sexo" checked={values.sexo === 100 ? true: false} value={100} onChange={sexo => {
+                                            
+                                            this.setState({sexo: 100});
+                                            return setFieldValue("sexo", 100);
+                                        }}
 											onBlur={handleBlur} />
                                         <Label className="form-check-label" check htmlFor="inline-radio1">Masculino</Label>
                                     </FormGroup>
                                     <FormGroup check inline>
-                                        <Input className="form-check-input" type="radio" id="inline-radio2" name="sexo" value={200} onChange={handleChange}
+                                        <Input className="form-check-input" type="radio" id="inline-radio2" name="sexo" checked={values.sexo === 200 ? true: false} value={200}  onChange={sexo => {
+                                          
+                                           
+                                           this.setState({sexo: 200});
+                                           return setFieldValue("sexo", 200);
+                                        }}
 											onBlur={handleBlur} />
                                         <Label className="form-check-label" check htmlFor="inline-radio2">Femenino</Label>
                                     </FormGroup>
@@ -597,6 +779,7 @@ class Grilla extends Component {
                                             errors={errors.region}
                                             touched={touched.region}
                                             invalid={errors.region !== undefined && touched.region }
+                                            defaultValue={{ label: 2002, value: 2002 }}
                                         ></CustomSelect>
                                     </FormGroup>
 
@@ -627,6 +810,7 @@ class Grilla extends Component {
                                             placeholder={'Seleccione la comuna...'}
                                             nameAttr={'comuna'}
                                             onChange={(e,a) => {
+                                                this.onChangeComunas(a);
                                                 
                                                 return setFieldValue(e,a);
                                             }}
@@ -665,7 +849,7 @@ class Grilla extends Component {
 											valid={values.telefono !== '' && touched.telefono}
 											invalid={errors.telefono !== undefined  && touched.telefono} ></Input>
 										<FormFeedback className="help-block">{errors.telefono && touched.telefono && errors.telefono}</FormFeedback>
-                                        <p className={ values.telefono.length > 100 ? "text-danger small" :"small"}>{values.telefono.length + " / 100" }</p>
+                                        <p className={ String(values.telefono).length > 100 ? "text-danger small" :"small"}>{String(values.telefono).length + " / 100" }</p>
 									</FormGroup>
 
                                     <FormGroup>
@@ -704,6 +888,10 @@ class Grilla extends Component {
         </React.Fragment>
 
         this.setOpenModal(true, 'lg', 'Listo!', 'modal-info', "Crear Persona", true, content);
+    }
+
+    eliminarPersona = (id) => {
+        this.props.deletePersona({Id: id});
     }
 
     setOpenModal(isOpen, size, modalMsjButttoOk,classNameModal, titleModal, hiddenFooterModal,contentModal) {
@@ -754,6 +942,23 @@ class Grilla extends Component {
         }, 10);
         
     }
+
+    confirmWindow = ({title = 'Confirm to submit', message = 'Are you sure to do this.', onClickYes = null, onClickNo = null }) => {
+        confirmAlert({
+          title: title,
+          message: message,
+          buttons: [
+            {
+              label: 'Sí',
+              onClick: onClickYes
+            },
+            {
+              label: 'No',
+              onClick: onClickNo
+            }
+          ]
+        });
+      };
 
     render() {
 
@@ -870,7 +1075,7 @@ class Grilla extends Component {
                                  
                                 locale={{
                                     // Options.jsx
-                                    items_per_page: '/ ofertas',
+                                    items_per_page: '/ personas',
                                     jump_to: 'Ir a',
                                     jump_to_confirm: 'confirmar',
                                     page: '',
@@ -900,7 +1105,7 @@ class Grilla extends Component {
                     </Col>
                     <Col>
                         <div className="card-header-actions">
-                            <Button block color="success" onClick={this.onClick_CreatePersona}> 
+                            <Button block color="success" onClick={(e) => this.onClick_CreatePersona(null) }> 
                                 <div className="align-self-center">
                                     Crear Persona
                                 </div>
@@ -926,7 +1131,7 @@ class Grilla extends Component {
                                 () =>
                                 <strong>Sin datos...</strong>
                             }
-                            data={ this.state.listaPersonas } 
+                            data={ this.state.listaPersonasGrid } 
 
                             columns={ this.columnsGrid } 
                             onTableChange={ this.handleTableChange }
@@ -956,7 +1161,11 @@ const mapStateToProps = state => ({
     listaPersonas: state.serviciosReducers.reducersObtenerPersonas,
     listaRegiones: state.serviciosReducers.reducersObtenerRegiones,
     listaCiudades: state.serviciosReducers.reducersObtenerCiudades,
-    listaComunas: state.serviciosReducers.reducersObtenerComunas
+    listaComunas: state.serviciosReducers.reducersObtenerComunas,
+    bCreatePersona: state.serviciosReducers.reducersCrearPersona,
+    unaPersona: state.serviciosReducers.reducersObtenerUnaPersona,
+    actualizarUnaPersona: state.serviciosReducers.reducersActualizarUnaPersona,
+    eliminarUnaPersona: state.serviciosReducers.reducersEliminarUnaPersona,
 });
 
 
@@ -965,4 +1174,8 @@ export default connect(mapStateToProps, {
     obtenerRegiones,
     obtenerCiudades,
     obtenerComunas,
+    createPersona,
+    obtenerUnaPersonas,
+    updatePersona,
+    deletePersona,
 })(Grilla);

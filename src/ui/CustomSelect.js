@@ -82,6 +82,7 @@ class CustomSelect extends Component {
             loadingMessage={() => { return "Cargando..."; }}
             isLoading={this.props.isLoading}
             isClearable={this.props.isClearable !== undefined && this.props.isClearable !== null ? this.props.isClearable : true }
+            defaultValue={this.props.defaultValue ? this.props.defaultValue: {}}
             
 			styles={this.customStyles(this.props.width)}
 			

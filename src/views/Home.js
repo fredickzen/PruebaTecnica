@@ -1,7 +1,7 @@
 
 import React, { Component, Suspense } from "react";
 import { Row, Col,
-Card, CardBody, CardHeader
+Card, CardBody, CardHeader, CardFooter
 
 } from 'reactstrap';
 import Spinner from "react-spinkit";
@@ -22,19 +22,24 @@ export default class Home extends Component {
             <div className="app">
                 
                     <main className="main ml-0 mr-0">
-                        <Row className="justify-content-center">
+                        <Row className="justify-content-center m-0">
                             <Col md="2" xs="0"></Col>
-                            <Col md="8" xs="12">
+                            <Col md="8" xs="12" className="p-0">
                                 
                                 <Suspense fallback={this.loading()}>
-                                    <Card>
-                                        <CardHeader>
-                                            <h3>Personas</h3>
-                                        </CardHeader>
-                                        <CardBody>
-                                            <Grilla></Grilla>
-                                        </CardBody>
-                                    </Card>
+                                    <Row>
+                                        <Col>
+                                            <Card>
+                                                <CardHeader>
+                                                    <h3>Personas</h3>
+                                                </CardHeader>
+                                                <CardBody>
+                                                    <Grilla></Grilla>
+                                                </CardBody>
+                                                <CardFooter></CardFooter>
+                                            </Card>
+                                        </Col>
+                                    </Row>
                                 </Suspense>
 
                             </Col>
