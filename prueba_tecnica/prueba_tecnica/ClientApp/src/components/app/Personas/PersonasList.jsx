@@ -26,10 +26,27 @@ class PersonasList extends Component {
       confirmButtonText: "Sí, eliminar",
     }).then((result) => {
       if (result.value) {
-        Axios.delete(env.apiUrl + `Personas/${id}`).then((res) => {
-          Swal.fire("Eliminada", "Persona eliminada con éxito.", "success");
-          this.props.listarPersonas();
-        });
+        Axios.delete(env.apiUrl + `Personas/${id}`)
+          .then(
+            (res) => {
+              Swal.fire("Eliminada", "Persona eliminada con éxito.", "success");
+              this.props.listarPersonas();
+            },
+            (error) => {
+              Swal.fire(
+                "Error",
+                "Se ha producido un error al ejecutar la tarea, por favor contactarse con el administrador del sistema.",
+                "danger"
+              );
+            }
+          )
+          .catch((error) => {
+            Swal.fire(
+              "Error",
+              "Se ha producido un error al ejecutar la tarea, por favor contactarse con el administrador del sistema.",
+              "danger"
+            );
+          });
       }
     });
   };
@@ -54,14 +71,16 @@ class PersonasList extends Component {
                 className="btn btn-sm btn-outline-warning"
                 onClick={() => this.editar(row.id)}
               >
-                <FontAwesomeIcon icon={faEdit} /> Editar
+                <FontAwesomeIcon icon={faEdit} />
+                <span className="d-xs-none"> Editar</span>
               </button>
               &nbsp;
               <button
                 className="btn  btn-sm btn-outline-danger"
                 onClick={() => this.eliminar(row.id)}
               >
-                <FontAwesomeIcon icon={faTrash} /> Eliminar
+                <FontAwesomeIcon icon={faTrash} />
+                <span className="d-xs-none"> Eliminar</span>
               </button>
             </React.Fragment>
           );

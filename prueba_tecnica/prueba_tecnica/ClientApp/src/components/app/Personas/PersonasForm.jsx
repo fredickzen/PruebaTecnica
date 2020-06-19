@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUser } from "@fortawesome/free-solid-svg-icons";
 import { splitRut, toDateInput } from "../../../utils/formats";
 import SimpleReactValidator from "simple-react-validator";
+import { rutFormat, rutValidate } from "rutfunctions";
 import Axios from "axios";
 import { env } from "../../../env/.env";
 import { Link } from "react-router-dom";
@@ -37,10 +38,12 @@ class PersonasForm extends Component {
   constructor() {
     super();
     this.validator = new SimpleReactValidator({
+      autoForceUpdate: this,
       messages: {
         required: "Este campo es requerido",
         email: "Formato de email inválido",
         integer: "Este campo admite sólo números",
+        alpha_space: "Sólo están permitidas las letras y espacios",
         alpha_num_space: "Sólo están permitidas las letras, números y espacios",
         alpha_num_dash_space:
           "Sólo están permitidas las letras, números, guiones y espacios",
@@ -57,6 +60,12 @@ class PersonasForm extends Component {
             );
           },
         },
+        rut_valido: {
+          message: "El rut no existe",
+          rule: (val, params, validator) => {
+            return rutValidate(val);
+          },
+        },
         seleccion: {
           message: "Debes seleccionar una alternativa",
           rule: (val, params, validator) => {
@@ -66,6 +75,7 @@ class PersonasForm extends Component {
       },
     });
   }
+
   componentDidMount() {
     const { visible, edit, persona, loading } = this.props;
     this.setState({
@@ -99,6 +109,7 @@ class PersonasForm extends Component {
       }
     });
   };
+
   getCiudades = () => {
     const RegionSeleccionada = this.regionCodigoRef.current
       ? this.regionCodigoRef.current.value
@@ -125,6 +136,7 @@ class PersonasForm extends Component {
       }
     });
   };
+
   getComunas = () => {
     const RegionSeleccionada = this.regionCodigoRef.current
       ? this.regionCodigoRef.current.value
@@ -155,22 +167,34 @@ class PersonasForm extends Component {
       }
     });
   };
+
   mostrarFormulario = (visible) => {
     this.setState({ visible });
   };
+
   resetFormulario = () => {
     this.setState({ persona: {} });
     this.mostrarFormulario(false);
     this.getRegiones();
   };
+
   changeState = () => {
+    //Determinar si existe sexo marcado
+    const sexo =
+      this.sexoFRef.current.checked || this.sexoMRef.current.checked ? 1 : -1;
+
+    //Formateo de rut
+    let run = rutFormat(this.runRef.current.value);
+    run = run === "-" ? "" : run;
+    this.runRef.current.value = run;
+
+    //Cambio de estado
     const persona = {
-      run: this.runRef.current.value,
+      run,
       nombres: this.nombresRef.current.value,
       apellidoPaterno: this.apellidoPaternoRef.current.value,
       apellidoMaterno: this.apellidoMaternoRef.current.value,
-      sexo:
-        this.sexoFRef.current.checked || this.sexoMRef.current.checked ? 1 : -1,
+      sexo,
       email: this.emailRef.current.value,
       fechaNacimiento: this.fechaNacimientoRef.current.value,
       regionCodigo: this.regionCodigoRef.current.value,
@@ -183,17 +207,40 @@ class PersonasForm extends Component {
     this.setState({
       persona,
     });
-    this.validator.showMessages();
-    this.forceUpdate();
+    //Comentado para mejorar la experiencia
+    // this.validator.showMessages();
+    // this.forceUpdate();
   };
-  validarFormulario = () => {};
+
   crearPersona = (persona) => {
-    Axios.post(env.apiUrl + "Personas", persona).then((res) => {
-      this.props.listarPersonas();
-      this.resetFormulario();
-      Swal.fire("Creación correcta", "Persona creada con éxito.", "success");
-    });
+    Axios.post(env.apiUrl + "Personas", persona)
+      .then(
+        (res) => {
+          this.props.listarPersonas();
+          this.resetFormulario();
+          Swal.fire(
+            "Creación correcta",
+            "Persona creada con éxito.",
+            "success"
+          );
+        },
+        (error) => {
+          Swal.fire(
+            "Error",
+            "Se ha producido un error al ejecutar la tarea, por favor contactarse con el administrador del sistema.",
+            "danger"
+          );
+        }
+      )
+      .catch((error) => {
+        Swal.fire(
+          "Error",
+          "Se ha producido un error al ejecutar la tarea, por favor contactarse con el administrador del sistema.",
+          "danger"
+        );
+      });
   };
+
   guardarPersona = (e) => {
     e.preventDefault();
     //Validación de campos antes de guardar
@@ -228,6 +275,7 @@ class PersonasForm extends Component {
       this.forceUpdate();
     }
   };
+
   render() {
     //Redirección finalizada la edición
     if (!this.state.visible) {
@@ -264,7 +312,7 @@ class PersonasForm extends Component {
     return (
       <div className="card">
         <div className="card-header bg-primary text-white">
-          <h6>{titulo}</h6>
+          <h4>{titulo}</h4>
         </div>
         <div className="card-body">
           <form onSubmit={this.guardarPersona} onChange={this.changeState}>
@@ -284,11 +332,13 @@ class PersonasForm extends Component {
                     placeholder="11.111.111-1"
                     defaultValue={persona.run}
                     ref={this.runRef}
+                    maxLength="12"
+                    onBlur={() => this.validator.showMessageFor("run")}
                   />
                   {this.validator.message(
                     "run",
                     this.state.persona.run,
-                    "required|rut"
+                    "required|rut|rut_valido"
                   )}
                 </div>
               </div>
@@ -308,6 +358,7 @@ class PersonasForm extends Component {
                     defaultValue={persona.nombres}
                     ref={this.nombresRef}
                     maxLength="40"
+                    onBlur={() => this.validator.showMessageFor("nombres")}
                   />
                   {this.validator.message(
                     "nombres",
@@ -327,6 +378,9 @@ class PersonasForm extends Component {
                     defaultValue={persona.apellidoPaterno}
                     ref={this.apellidoPaternoRef}
                     maxLength="25"
+                    onBlur={() =>
+                      this.validator.showMessageFor("ApellidoPaterno")
+                    }
                   />
                   {this.validator.message(
                     "ApellidoPaterno",
@@ -346,6 +400,9 @@ class PersonasForm extends Component {
                     defaultValue={persona.apellidoMaterno}
                     ref={this.apellidoMaternoRef}
                     maxLength="25"
+                    onBlur={() =>
+                      this.validator.showMessageFor("apellidoMaterno")
+                    }
                   />
                   {this.validator.message(
                     "apellidoMaterno",
@@ -371,6 +428,7 @@ class PersonasForm extends Component {
                     defaultValue={persona.email}
                     ref={this.emailRef}
                     maxLength="75"
+                    onBlur={() => this.validator.showMessageFor("email")}
                   />
                   {this.validator.message(
                     "email",
@@ -434,6 +492,9 @@ class PersonasForm extends Component {
                     placeholder="01-01-1980"
                     defaultValue={toDateInput(persona.fechaNacimiento)}
                     ref={this.fechaNacimientoRef}
+                    onBlur={() =>
+                      this.validator.showMessageFor("fechaNacimiento")
+                    }
                   />
                   {this.validator.message(
                     "fechaNacimiento",
@@ -454,6 +515,7 @@ class PersonasForm extends Component {
                     className="form-control"
                     ref={this.regionCodigoRef}
                     onChange={this.getCiudades}
+                    onBlur={() => this.validator.showMessageFor("regionCodigo")}
                   >
                     {this.state.regiones.map((region) => (
                       <option key={region.value} value={region.value}>
@@ -480,6 +542,7 @@ class PersonasForm extends Component {
                     className="form-control"
                     ref={this.ciudadCodigoRef}
                     onChange={this.getComunas}
+                    onBlur={() => this.validator.showMessageFor("ciudadCodigo")}
                   >
                     {this.state.ciudades.map((ciudad) => (
                       <option key={ciudad.value} value={ciudad.value}>
@@ -502,7 +565,11 @@ class PersonasForm extends Component {
                   Comuna:
                 </label>
                 <div className="col-12 col-sm-6 col-md-4 col-lg-4 ">
-                  <select className="form-control" ref={this.comunaCodigoRef}>
+                  <select
+                    className="form-control"
+                    ref={this.comunaCodigoRef}
+                    onBlur={() => this.validator.showMessageFor("comunaCodigo")}
+                  >
                     {this.state.comunas.map((comuna) => (
                       <option key={comuna.value} value={comuna.value}>
                         {comuna.label}
@@ -532,6 +599,7 @@ class PersonasForm extends Component {
                     ref={this.direccionRef}
                     defaultValue={persona.direccion}
                     maxLength="75"
+                    onBlur={() => this.validator.showMessageFor("direccion")}
                   />
                   {this.validator.message(
                     "direccion",
@@ -556,6 +624,7 @@ class PersonasForm extends Component {
                     ref={this.telefonoRef}
                     defaultValue={persona.telefono}
                     maxLength="9"
+                    onBlur={() => this.validator.showMessageFor("telefono")}
                   />
                   {this.validator.message(
                     "telefono",
@@ -581,6 +650,9 @@ class PersonasForm extends Component {
                     ref={this.observacionesRef}
                     defaultValue={persona.observaciones}
                     maxLength="200"
+                    onBlur={() =>
+                      this.validator.showMessageFor("observaciones")
+                    }
                   />
                   {this.validator.message(
                     "observaciones",

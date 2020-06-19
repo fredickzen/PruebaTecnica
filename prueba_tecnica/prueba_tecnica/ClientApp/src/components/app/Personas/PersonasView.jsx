@@ -19,6 +19,7 @@ class PersonasView extends Component {
     return (
       <div>
         <h2>Mantenedor de personas</h2>
+        <hr />
         {/* Crear y editar */}
         <PersonasForm
           visible={this.state.visible}
@@ -26,6 +27,7 @@ class PersonasView extends Component {
           persona={this.state.persona}
           listarPersonas={this.listarPersonas}
         />
+        <br />
         {/* Listar, llamado a editar y eliminar */}
         <PersonasList
           personas={this.state.personas}

@@ -35,3 +35,13 @@ code {
 #observaciones {
   resize: none;
 }
+
+.srv-validation-message {
+  color: #d35400 !important;
+  font-size: 12px;
+}
+@media (max-width: 488px) {
+  .d-xs-none {
+    display: none;
+  }
+}
