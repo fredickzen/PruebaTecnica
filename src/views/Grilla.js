@@ -303,7 +303,7 @@ class Grilla extends Component {
             //console.log(nextProps.bCreatePersona);
 
             if(nextProps.bCreatePersona && !nextProps.bCreatePersona.error){
-                this.notify("Persona creada con exito...", true);
+                this.notify("Persona creada con éxito...", true);
                 this.setState({
                     bCreatePersona: nextProps.bCreatePersona ,
                 });
@@ -334,7 +334,7 @@ class Grilla extends Component {
             //console.log(nextProps.actualizarUnaPersona);
 
             if(nextProps.actualizarUnaPersona && !nextProps.actualizarUnaPersona.error){
-                this.notify("Persona actualizada con exito...", true);
+                this.notify("Persona actualizada con éxito...", true);
                 this.setState({
                     actualizarUnaPersona: nextProps.actualizarUnaPersona ,
                 });
@@ -353,7 +353,7 @@ class Grilla extends Component {
             //console.log(nextProps.actualizarUnaPersona);
 
             if(nextProps.eliminarUnaPersona && !nextProps.eliminarUnaPersona.error){
-                this.notify("Persona eliminada con exito...", true);
+                this.notify("Persona eliminada con éxito...", true);
                 this.setState({
                     eliminarUnaPersona: nextProps.eliminarUnaPersona ,
                 });
