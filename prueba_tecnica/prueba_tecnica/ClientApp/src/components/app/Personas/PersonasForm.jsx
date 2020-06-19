@@ -72,6 +72,15 @@ class PersonasForm extends Component {
             return val !== -1 && val !== "-1";
           },
         },
+        rangofecha: {
+          message: "El rango de la fecha no parece el apropiado",
+          rule: (val, params, validator) => {
+            return (
+              new Date(val) < new Date() &&
+              new Date(val) > new Date("1900-01-01")
+            );
+          },
+        },
       },
     });
   }
@@ -499,7 +508,7 @@ class PersonasForm extends Component {
                   {this.validator.message(
                     "fechaNacimiento",
                     this.state.persona.fechaNacimiento,
-                    "required"
+                    "required|rangofecha"
                   )}
                 </div>
               </div>
