@@ -9,7 +9,7 @@ namespace multisfapi.DataView
    
     public class PersonaDateView
     {
-        public Guid Id { get; set; }
+        public Guid? Id { get; set; }
         public string Run { get; set; }
         public int RunCuerpo { get; set; }
 

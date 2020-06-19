@@ -31,10 +31,10 @@ namespace multisfapi.Controllers
                 var personas = db.Set<Models.Persona>();
                 personas.Add(new Models.Persona {
                     Id = id,
-                    Run = parameters.Run,
+                    //Run = parameters.Run,
                     RunCuerpo = parameters.RunCuerpo,
                     RunDigito = parameters.RunDigito,
-                    Nombre = parameters.Nombre,
+                    //Nombre = parameters.Nombre,
                     Nombres = parameters.Nombres,
                     ApellidoPaterno = parameters.ApellidoPaterno,
                     ApellidoMaterno = parameters.ApellidoMaterno,
@@ -71,7 +71,7 @@ namespace multisfapi.Controllers
                 persona = db.Persona.SingleOrDefault(b => b.Id == parameters.Id);
                 if (persona != null)
                 {
-                    persona.Id = parameters.Id;
+                    persona.Id = parameters.Id.HasValue ? parameters.Id.Value : Guid.Empty;
                     persona.Run = parameters.Run;
                     persona.RunCuerpo = parameters.RunCuerpo;
                     persona.RunDigito = parameters.RunDigito;
