@@ -19,7 +19,19 @@ code {
   padding: 3px;
   font-size: 12px;
 }
+
+.PersonasList {
+  padding-bottom: 40px;
+}
+
 .rigth-button button,
-.rigth-button input[type="submit"] {
+.rigth-button a,
+.rigth-button input[type="submit"],
+.rigth-button input[type="reset"] {
   float: right;
+  margin-left: 5px;
+}
+
+#observaciones {
+  resize: none;
 }

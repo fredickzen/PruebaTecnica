@@ -1,27 +1,12 @@
 export const personasColumns = [
   {
-    name: "ID",
+    name: "Nombre completo",
     sorteable: true,
-    selector: "summary",
+    selector: "nombre",
   },
   {
-    name: "Nombre",
-    selector: "summary",
-    sorteable: true,
-  },
-  {
-    name: "date",
-    selector: "date",
-    sorteable: true,
-  },
-  {
-    name: "Teléfono",
-    selector: "temperatureC",
-    sorteable: true,
-  },
-  {
-    name: "email",
-    selector: "temperatureF",
+    name: "R.U.T",
+    selector: "run",
     sorteable: true,
   },
 ];
