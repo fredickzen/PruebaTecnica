@@ -13,13 +13,20 @@ namespace multisfapi.Controllers
     [ApiController]
     public class ParametrosController : ControllerBase
     {
+        private readonly bdPersonasContext _context;
+
+        public ParametrosController(bdPersonasContext context)
+        {
+            _context = context;
+        }
+
         [Route("Regiones")]
         [HttpGet]
         public async Task<IActionResult> Regiones()
         {
             IEnumerable<Region> data = null;
 
-            using (var db = new bdPersonasContext())
+            using (var db = _context)
             {
                 var query = from d in db.Region
                            select d;
@@ -36,7 +43,7 @@ namespace multisfapi.Controllers
         {
             IEnumerable<Ciudad> data = null;
 
-            using (var db = new bdPersonasContext())
+            using (var db = _context)
             {
                 var query = from d in db.Ciudad
                             where !RegionCodigo.HasValue || d.RegionCodigo == RegionCodigo.Value
@@ -54,7 +61,7 @@ namespace multisfapi.Controllers
         {
             IEnumerable<Comuna> data = null;
 
-            using (var db = new bdPersonasContext())
+            using (var db = _context)
             {
                 var query = from d in db.Comuna
                             where !CiudadCodigo.HasValue || d.CiudadCodigo == CiudadCodigo.Value
@@ -72,7 +79,7 @@ namespace multisfapi.Controllers
         {
             IEnumerable<Sexo> data = null;
 
-            using (var db = new bdPersonasContext())
+            using (var db = _context)
             {
                 var query = from d in db.Sexo
                             select d;

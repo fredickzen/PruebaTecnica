@@ -15,6 +15,13 @@ namespace multisfapi.Controllers
     [ApiController]
     public class PersonasController : ControllerBase
     {
+        private readonly bdPersonasContext _context;
+
+        public PersonasController(bdPersonasContext context)
+        {
+            _context = context;
+        }
+
         [Route("Create")]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody()] PersonaDateView parameters)
@@ -26,10 +33,11 @@ namespace multisfapi.Controllers
 
             var id = Guid.NewGuid();
 
-            using (var db = new bdPersonasContext())
+            using (var db = _context)
             {
-                var personas = db.Set<Models.Persona>();
-                personas.Add(new Models.Persona {
+                var personas = _context.Set<Models.Persona>();
+                personas.Add(new Models.Persona
+                {
                     Id = id,
                     //Run = parameters.Run,
                     RunCuerpo = parameters.RunCuerpo,
@@ -49,7 +57,17 @@ namespace multisfapi.Controllers
                     Observaciones = parameters.Observaciones,
                 });
 
-                await db.SaveChangesAsync();
+                try
+                {
+
+
+                    await db.SaveChangesAsync();
+                }
+                catch (Exception)
+                {
+                    return UnprocessableEntity("Error realizando el insert");
+                }
+
             }
 
             return Ok(true);
@@ -66,7 +84,7 @@ namespace multisfapi.Controllers
 
             Models.Persona persona = null;
 
-            using (var db = new bdPersonasContext())
+            using (var db = _context)
             {
                 persona = db.Persona.SingleOrDefault(b => b.Id == parameters.Id);
                 if (persona != null)
@@ -116,7 +134,7 @@ namespace multisfapi.Controllers
 
             Models.Persona persona = null;
 
-            using (var db = new bdPersonasContext())
+            using (var db = _context)
             {
                 persona = db.Persona.SingleOrDefault(b => b.Id == parameters.Id);
                 if (persona != null)
@@ -150,7 +168,7 @@ namespace multisfapi.Controllers
 
             Paging.PagedResult<Models.Persona> personas = null;
 
-            using (var db = new bdPersonasContext())
+            using (var db = _context)
             {
                 personas = Paging.GetPaged<Models.Persona>(db.Persona, PageIndex, PageSize);
 
@@ -169,7 +187,7 @@ namespace multisfapi.Controllers
             {
                 var idGuid = new Guid(id);
 
-                using (var db = new bdPersonasContext())
+                using (var db = _context)
                 {
                     persona = db.Persona.SingleOrDefault(b => b.Id == idGuid);
 
