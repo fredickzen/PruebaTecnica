@@ -159,7 +159,36 @@ namespace multisfapi.Controllers
 
         }
 
-        
+        [Route("GetOne")]
+        [HttpGet]
+        public IActionResult GetOne([FromQuery()] string id)
+        {
+            Models.Persona persona = null;
 
+            try
+            {
+                var idGuid = new Guid(id);
+
+                using (var db = new bdPersonasContext())
+                {
+                    persona = db.Persona.SingleOrDefault(b => b.Id == idGuid);
+
+                }
+
+                if (persona != null)
+                {
+                    return Ok(persona);
+                }
+                else
+                {
+                    return NotFound("Persona no encontrada");
+                }
+
+            }
+            catch (Exception e)
+            {
+                return UnprocessableEntity("Debe incluir los parámetros");
+            }
+        }
     }
 }

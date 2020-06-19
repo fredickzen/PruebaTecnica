@@ -18,6 +18,8 @@ namespace multisfapi
     {
         public static string ConnectionStringDefaultConnection { get; private set; }
 
+        readonly string MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -32,6 +34,12 @@ namespace multisfapi
 
             services.AddControllers();
             services.AddDbContext<bdPersonasContext>();
+
+
+
+            services.AddCors();
+
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -41,6 +49,14 @@ namespace multisfapi
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            app.UseCors(builder =>
+            {
+                builder
+                .AllowAnyOrigin()
+                .AllowAnyMethod()
+                .AllowAnyHeader();
+            });
 
             app.UseHttpsRedirection();
 
@@ -53,8 +69,7 @@ namespace multisfapi
                 endpoints.MapControllers();
             });
 
-            
-            
+            app.UseCors(MyAllowSpecificOrigins);
 
         }
     }

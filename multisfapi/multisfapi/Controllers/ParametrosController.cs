@@ -32,13 +32,14 @@ namespace multisfapi.Controllers
 
         [Route("Ciudades")]
         [HttpGet]
-        public async Task<IActionResult> Ciudades()
+        public async Task<IActionResult> Ciudades([FromQuery()] int? RegionCodigo)
         {
             IEnumerable<Ciudad> data = null;
 
             using (var db = new bdPersonasContext())
             {
                 var query = from d in db.Ciudad
+                            where !RegionCodigo.HasValue || d.RegionCodigo == RegionCodigo.Value
                             select d;
 
                 data = await query.ToListAsync();
@@ -49,13 +50,14 @@ namespace multisfapi.Controllers
 
         [Route("Comunas")]
         [HttpGet]
-        public async Task<IActionResult> Comunas()
+        public async Task<IActionResult> Comunas([FromQuery()] int? CiudadCodigo)
         {
             IEnumerable<Comuna> data = null;
 
             using (var db = new bdPersonasContext())
             {
                 var query = from d in db.Comuna
+                            where !CiudadCodigo.HasValue || d.CiudadCodigo == CiudadCodigo.Value
                             select d;
 
                 data = await query.ToListAsync();
