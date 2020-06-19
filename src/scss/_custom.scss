@@ -1,0 +1,32 @@
+// Here you can add other styles
+
+.app-body{
+    background-image: url("/assets/img/logos/backgroung.jpg");
+}
+.app-header {
+    flex: 0 0 72px !important;
+    height: 72px;
+
+}
+
+.bg-primary-home {
+    background-color: #fff !important;
+}
+
+.breadcrumb {
+    
+    padding-top: 0.75rem !important;
+  
+}
+
+@media (min-width: 992px){
+    .header-fixed .app-body {
+        margin-top: 72px;
+    }
+}
+
+@media (max-width: 991.98px){
+.app-body {
+    margin-top: 72px;
+}
+}

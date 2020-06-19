@@ -1,0 +1,40 @@
+
+.simplebar-scrollbar {
+    background-color: #acb4bc;
+    border-radius: 4px;
+    
+}
+
+
+.simplebar-scrollbar:before {
+   
+    background: #5c6873;
+    transition: opacity 0.5s linear;
+    
+}
+
+/* Cambiamos el fondo y agregamos una sombra cuando esté en hover */
+.simplebar-scrollbar:hover {
+    background: #ffc107;
+    box-shadow: 0 0 2px 1px rgba(0, 0, 0, 0.2);
+    
+}
+
+/* Cambiamos el fondo cuando esté en active */
+.simplebar-scrollbar:active {
+    background-color: #f86c6b;
+    
+}
+
+.simplebar-track {
+    background: #f0f3f5;
+    border-radius: 4px;
+    z-index: auto !important;
+}
+
+/* Cambiamos el fondo cuando esté en active o hover */
+.simplebar-track:hover,
+.simplebar-track:active {
+  background: #fff2bc;
+
+}
