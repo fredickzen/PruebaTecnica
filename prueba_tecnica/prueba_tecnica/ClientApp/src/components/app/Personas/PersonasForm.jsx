@@ -3,11 +3,15 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUser } from "@fortawesome/free-solid-svg-icons";
 import { splitRut, toDateInput } from "../../../utils/formats";
 import SimpleReactValidator from "simple-react-validator";
-import { rutFormat, rutValidate } from "rutfunctions";
+import { rutFormat } from "rutfunctions";
 import Axios from "axios";
 import { env } from "../../../env/.env";
 import { Link } from "react-router-dom";
 import Swal from "sweetalert2";
+import {
+  validacionesPersonalizadas,
+  validacionesMensajesPersonalizados,
+} from "../global/validacionesPersonalizadas";
 
 class PersonasForm extends Component {
   //State inicial
@@ -39,49 +43,8 @@ class PersonasForm extends Component {
     super();
     this.validator = new SimpleReactValidator({
       autoForceUpdate: this,
-      messages: {
-        required: "Este campo es requerido",
-        email: "Formato de email inválido",
-        integer: "Este campo admite sólo números",
-        alpha_space: "Sólo están permitidas las letras y espacios",
-        alpha_num_space: "Sólo están permitidas las letras, números y espacios",
-        alpha_num_dash_space:
-          "Sólo están permitidas las letras, números, guiones y espacios",
-      },
-      validators: {
-        rut: {
-          message: "Formato de rut incorrecto",
-          rule: (val, params, validator) => {
-            return (
-              validator.helpers.testRegex(
-                val,
-                /^\d{1,2}\.\d{3}\.\d{3}[-][0-9kK]{1}$/i
-              ) && params.indexOf(val) === -1
-            );
-          },
-        },
-        rut_valido: {
-          message: "El rut no existe",
-          rule: (val, params, validator) => {
-            return rutValidate(val);
-          },
-        },
-        seleccion: {
-          message: "Debes seleccionar una alternativa",
-          rule: (val, params, validator) => {
-            return val !== -1 && val !== "-1";
-          },
-        },
-        rangofecha: {
-          message: "El rango de la fecha no parece el apropiado",
-          rule: (val, params, validator) => {
-            return (
-              new Date(val) < new Date() &&
-              new Date(val) > new Date("1900-01-01")
-            );
-          },
-        },
-      },
+      messages: validacionesMensajesPersonalizados,
+      validators: validacionesPersonalizadas,
     });
   }
 
@@ -95,6 +58,7 @@ class PersonasForm extends Component {
     });
     this.getRegiones();
   }
+
   getRegiones = () => {
     Axios.get(env.apiUrl + "Regions").then((res) => {
       if (res.status === 200) {
@@ -613,7 +577,7 @@ class PersonasForm extends Component {
                   {this.validator.message(
                     "direccion",
                     this.state.persona.direccion,
-                    "required|max:75|alpha_num_dash_space"
+                    "required|max:75|direccion"
                   )}
                 </div>
               </div>
@@ -666,7 +630,7 @@ class PersonasForm extends Component {
                   {this.validator.message(
                     "observaciones",
                     this.state.persona.observaciones,
-                    "required|max:200|alpha_num_dash_space"
+                    "required|max:200|texto"
                   )}
                 </div>
               </div>
