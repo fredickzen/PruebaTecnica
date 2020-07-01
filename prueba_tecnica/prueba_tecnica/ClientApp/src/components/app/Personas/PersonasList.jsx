@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import PropTypes from "prop-types";
 import DataTable from "react-data-table-component";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEdit, faTrash } from "@fortawesome/free-solid-svg-icons";
@@ -36,7 +37,7 @@ class PersonasList extends Component {
               Swal.fire(
                 "Error",
                 "Se ha producido un error al ejecutar la tarea, por favor contactarse con el administrador del sistema.",
-                "danger"
+                "error"
               );
             }
           )
@@ -44,7 +45,7 @@ class PersonasList extends Component {
             Swal.fire(
               "Error",
               "Se ha producido un error al ejecutar la tarea, por favor contactarse con el administrador del sistema.",
-              "danger"
+              "error"
             );
           });
       }
@@ -104,5 +105,8 @@ class PersonasList extends Component {
     );
   }
 }
-
+PersonasList.propTypes = {
+  personas: PropTypes.array.isRequired,
+  listarPersonas: PropTypes.func.isRequired,
+};
 export default PersonasList;

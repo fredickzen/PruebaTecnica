@@ -59,9 +59,9 @@ class PersonasEditar extends Component {
         <hr />
         {this.state.persona && (
           <PersonasForm
-            edit="true"
-            loading="true"
-            visible="true"
+            edit={true}
+            loading={true}
+            visible={true}
             persona={this.state.persona}
             actualizarPersona={this.actualizarPersona}
           />

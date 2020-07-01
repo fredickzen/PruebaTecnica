@@ -31,7 +31,6 @@ class PersonasView extends Component {
         {/* Listar, llamado a editar y eliminar */}
         <PersonasList
           personas={this.state.personas}
-          editarPersona={this.editarPersona}
           listarPersonas={this.listarPersonas}
         />
       </div>

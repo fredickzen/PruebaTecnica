@@ -28,6 +28,15 @@ export const validacionesPersonalizadas = {
       );
     },
   },
+  telefono: {
+    message: "Formato de teléfono incorrecto",
+    rule: (val, params, validator) => {
+      return (
+        validator.helpers.testRegex(val, /^[0-9]+$/g) &&
+        val.toString().length === 9
+      );
+    },
+  },
   direccion: {
     message: "Formato de dirección no válido",
     rule: (val, params, validator) => {

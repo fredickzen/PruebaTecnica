@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import PropTypes from "prop-types";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUser } from "@fortawesome/free-solid-svg-icons";
 import { splitRut, toDateInput } from "../../../utils/formats";
@@ -56,6 +57,7 @@ class PersonasForm extends Component {
       persona,
       loading,
     });
+
     this.getRegiones();
   }
 
@@ -160,7 +162,11 @@ class PersonasForm extends Component {
     let run = rutFormat(this.runRef.current.value);
     run = run === "-" ? "" : run;
     this.runRef.current.value = run;
-
+    //Formateo de telefono
+    let telefono = ("" + this.telefonoRef.current.value)
+      .toString()
+      .replace(/[^0-9]+/g, "");
+    this.telefonoRef.current.value = telefono;
     //Cambio de estado
     const persona = {
       run,
@@ -174,7 +180,7 @@ class PersonasForm extends Component {
       ciudadCodigo: this.ciudadCodigoRef.current.value,
       comunaCodigo: this.comunaCodigoRef.current.value,
       direccion: this.direccionRef.current.value,
-      telefono: this.telefonoRef.current.value,
+      telefono,
       observaciones: this.observacionesRef.current.value,
     };
     this.setState({
@@ -490,11 +496,12 @@ class PersonasForm extends Component {
                     onChange={this.getCiudades}
                     onBlur={() => this.validator.showMessageFor("regionCodigo")}
                   >
-                    {this.state.regiones.map((region) => (
-                      <option key={region.value} value={region.value}>
-                        {region.label}
-                      </option>
-                    ))}
+                    {this.state.regiones &&
+                      this.state.regiones.map((region) => (
+                        <option key={region.value} value={region.value}>
+                          {region.label}
+                        </option>
+                      ))}
                   </select>
                   {this.validator.message(
                     "regionCodigo",
@@ -602,7 +609,7 @@ class PersonasForm extends Component {
                   {this.validator.message(
                     "telefono",
                     this.state.persona.telefono,
-                    "required|max:9|integer"
+                    "required|telefono"
                   )}
                 </div>
               </div>
@@ -649,5 +656,12 @@ class PersonasForm extends Component {
     );
   }
 }
-
+PersonasForm.propTypes = {
+  visible: PropTypes.bool.isRequired,
+  edit: PropTypes.bool.isRequired,
+  persona: PropTypes.object.isRequired,
+  loading: PropTypes.bool,
+  listarPersonas: PropTypes.func,
+  actualizarPersona: PropTypes.func,
+};
 export default PersonasForm;
